@@ -819,7 +819,7 @@ static int hostapd_cli_cmd_license(struct wpa_ctrl *ctrl, int argc,
 }
 
 
-/// HERE - new features
+/// HERE - new features added by gmj93 and h3dema
 static int hostapd_cli_cmd_get_queue_params(struct wpa_ctrl *ctrl,
                        int argc, char *argv[]) {
     return wpa_ctrl_command(ctrl, "GET_QUEUE_PARAMS");  // processed by hostapd_ctrl_iface_get_queue_params()
