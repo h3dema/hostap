@@ -1214,6 +1214,24 @@ static int hostapd_ctrl_iface_get_queue_params(struct hostapd_data *hapd,
 	return pos - buf;
 }
 
+static int hostapd_ctrl_iface_set_queue_params(struct hostapd_data *hapd,
+                     char *buf, size_t buflen)
+{
+    char *pos = buf;
+    // char *end = buf + buflen;
+
+    // HERE -- TO DO
+    int queue = 0;
+    int aifs = 0;
+    int cw_min = 0;
+    int cw_max = 0;
+    int burst_time = 0;
+
+    hostapd_set_tx_queue_params(hapd, queue, aifs, cw_min, cw_max, burst_time);
+
+    return pos - buf;
+}
+
 
 static int hostapd_ctrl_iface_get_config(struct hostapd_data *hapd,
 					 char *buf, size_t buflen)
@@ -3415,6 +3433,9 @@ static int hostapd_ctrl_iface_receive_process(struct hostapd_data *hapd,
 	} else if (os_strcmp(buf, "GET_QUEUE_PARAMS") == 0) { // HERE --- Added by gmj93 and h3dema
 		reply_len = hostapd_ctrl_iface_get_queue_params(hapd, reply,
 							  reply_size);
+    } else if (os_strcmp(buf, "SET_QUEUE_PARAMS") == 0) { // HERE --- Added by gmj93 and h3dema
+        reply_len = hostapd_ctrl_iface_set_queue_params(hapd, reply,
+                              reply_size);
 	} else {
 		os_memcpy(reply, "UNKNOWN COMMAND\n", 16);
 		reply_len = 16;

@@ -825,6 +825,33 @@ static int hostapd_cli_cmd_get_queue_params(struct wpa_ctrl *ctrl,
     return wpa_ctrl_command(ctrl, "GET_QUEUE_PARAMS");  // processed by hostapd_ctrl_iface_get_queue_params()
 }
 
+
+static int hostapd_cli_cmd_set_queue_params(struct wpa_ctrl *ctrl,
+                       int argc, char *argv[]) {
+	char buf[200];
+	int res;
+
+	if (argc != 5) {
+		printf("Invalid 'set_queue_params' command - "
+		       "five arguments (comma delimited queue params) "
+		       "is needed\n");
+		return -1;
+	}
+
+	// argv[0] = queue num
+	// argv[1] = aifs
+	// argv[2] = burst
+	// argv[3] = tx_cwmin
+	// argv[4] = tx_cwmax
+
+	res = os_snprintf(buf, sizeof(buf), "SET_QUEUE_PARAMS %s, %s, %s, %s, %s", argv[0], argv[1], argv[2], argv[3], argv[4]);
+	if (os_snprintf_error(sizeof(buf), res))
+		return -1;
+
+    return wpa_ctrl_command(ctrl, buf);  // processed by hostapd_ctrl_iface_set_queue_params()
+}
+
+
 static int hostapd_cli_cmd_set_qos_map_set(struct wpa_ctrl *ctrl,
 					   int argc, char *argv[])
 {
@@ -1538,8 +1565,7 @@ static const struct hostapd_cli_cmd hostapd_cli_commands[] = {
 	   "= list all stations" },
 	{ "new_sta", hostapd_cli_cmd_new_sta, NULL,
 	  "<addr> = add a new station" },
-	{ "deauthenticate", hostapd_cli_cmd_deauthenticate,
-	  hostapd_complete_stations,
+	{ "deauthenticate", hostapd_cli_cmd_deauthenticate, hostapd_complete_stations,
 	  "<addr> = deauthenticate a station" },
 	{ "disassociate", hostapd_cli_cmd_disassociate,
 	  hostapd_complete_stations,
@@ -1694,8 +1720,10 @@ static const struct hostapd_cli_cmd hostapd_cli_commands[] = {
 	{ "reload_wpa_psk", hostapd_cli_cmd_reload_wpa_psk, NULL,
 	  "= reload wpa_psk_file only" },
 // new things added by gmj93 and h3dema
-    { "queue_params", hostapd_cli_cmd_get_queue_params, NULL,
-      "= get the tx queue params" },
+    { "get_queue_params", hostapd_cli_cmd_get_queue_params, NULL,
+      "= get the tx queue params (all queues)" },
+    { "set_queue_params", hostapd_cli_cmd_set_queue_params, NULL,
+      "= set the tx queue params (one queue)" },
 	{ NULL, NULL, NULL, NULL }
 };
 
