@@ -1177,11 +1177,41 @@ static int hostapd_ctrl_iface_get_key_mgmt(struct hostapd_data *hapd,
 
 // HERE --- Added by gmj93 and h3dema
 // This procedure returns the queue params from hostapd_cli
+// ref.
+//   http://docs.ros.org/diamondback/api/wpa_supplicant/html/structhostapd__data.html
+//   http://docs.ros.org/diamondback/api/wpa_supplicant/html/structhostapd__config.html
+//   http://docs.ros.org/diamondback/api/wpa_supplicant/html/structhostapd__tx__queue__params.html
 static int hostapd_ctrl_iface_get_queue_params(struct hostapd_data *hapd,
 					 char *buf, size_t buflen)
 {
-	///
-	return 0;
+    int ret;
+    char *pos, *end;
+
+    pos = buf;
+    end = buf + buflen;
+
+    // see hostapd_config_tx_queue()
+
+    struct hostapd_config *conf = hapd->iconf; //<<- check this
+    for(int num = 0; num < NUM_TX_QUEUES; num++) { // NUM_TX_QUEUES defined in src/ap/ap_config.h
+        struct hostapd_tx_queue_params *queue = &conf->tx_queue[num];
+        int aifs = queue->aifs;
+        int burst = queue->burst;
+        int tx_cwmin = queue->cwmin;
+        int tx_cwmax = queue->cwmax;
+
+        // return result
+        ret = os_snprintf(pos, end - pos,
+                          "Queue=%d : aifs=%d burst=%d tx_cwmin=%d tx_cwmax=%d\n",
+                          num, aifs, burst, tx_cwmin, tx_cwmax
+                          );
+        if (os_snprintf_error(end - pos, ret))
+            return pos - buf;
+        pos += ret;
+    }
+
+
+	return pos - buf;
 }
 
 
