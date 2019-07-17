@@ -1176,6 +1176,15 @@ static int hostapd_ctrl_iface_get_key_mgmt(struct hostapd_data *hapd,
 }
 
 
+// This procedure returns the queue params from hostapd_cli
+static int hostapd_ctrl_iface_get_queue_params(struct hostapd_data *hapd,
+					 char *buf, size_t buflen)
+{
+	///
+	return 0;
+}
+
+
 static int hostapd_ctrl_iface_get_config(struct hostapd_data *hapd,
 					 char *buf, size_t buflen)
 {
@@ -3373,6 +3382,9 @@ static int hostapd_ctrl_iface_receive_process(struct hostapd_data *hapd,
 	} else if (os_strncmp(buf, "GET_CAPABILITY ", 15) == 0) {
 		reply_len = hostapd_ctrl_iface_get_capability(
 			hapd, buf + 15, reply, reply_size);
+	} else if (os_strcmp(buf, "GET_QUEUE_PARAMS") == 0) { // HERE --- Added by gmj93 and h3dema
+		reply_len = hostapd_ctrl_iface_get_queue_params(hapd, reply,
+							  reply_size);
 	} else {
 		os_memcpy(reply, "UNKNOWN COMMAND\n", 16);
 		reply_len = 16;
