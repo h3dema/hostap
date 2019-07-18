@@ -1193,17 +1193,17 @@ static int hostapd_ctrl_iface_get_queue_params(struct hostapd_data *hapd,
     // see hostapd_config_tx_queue()
 
     struct hostapd_config *conf = hapd->iconf; //<<- check this
-    for(int num = 0; num < NUM_TX_QUEUES; num++) { // NUM_TX_QUEUES defined in src/ap/ap_config.h
-        struct hostapd_tx_queue_params *queue = &conf->tx_queue[num];
+    for(int num = 0; num < 4; num++) { // Value is fixed in 4
+        struct hostapd_wmm_ac_params *queue = &conf->wmm_ac_params[num];
         int aifs = queue->aifs;
-        int burst = queue->burst;
         int tx_cwmin = queue->cwmin;
         int tx_cwmax = queue->cwmax;
+        int txop = queue->txop_limit;
 
         // return result
         ret = os_snprintf(pos, end - pos,
-                          "Queue=%d : aifs=%d burst=%d tx_cwmin=%d tx_cwmax=%d\n",
-                          num, aifs, burst, tx_cwmin, tx_cwmax
+                          "Queue=%d : aifs=%d txop=%d tx_cwmin=%d tx_cwmax=%d\n",
+                          num, aifs, txop, tx_cwmin, tx_cwmax
                           );
         if (os_snprintf_error(end - pos, ret))
             return pos - buf;
@@ -1230,9 +1230,10 @@ static int hostapd_ctrl_iface_set_queue_params(struct hostapd_data *hapd,
 
     wpa_printf(MSG_DEBUG, "Set queue %d: aifs %d cw_min %d cw_max %d burst_time %d", queue, aifs, cw_min, cw_max, burst_time);
 
-    // call to change
     int ret = hostapd_set_tx_queue_params(hapd, queue, aifs, cw_min, cw_max, burst_time);
-    return os_snprintf(buf, buflen, (ret == 1) ? "ok" : "nok");
+
+    int res = os_snprintf(buf, buflen, (ret == 1) ? "ok" : "nok");
+    return res;
 }
 
 
