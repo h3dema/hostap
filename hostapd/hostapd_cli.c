@@ -1719,11 +1719,17 @@ static const struct hostapd_cli_cmd hostapd_cli_commands[] = {
 	  "<addr> [req_mode=] <measurement request hexdump>  = send a Beacon report request to a station" },
 	{ "reload_wpa_psk", hostapd_cli_cmd_reload_wpa_psk, NULL,
 	  "= reload wpa_psk_file only" },
-// new things added by gmj93 and h3dema
+	//
+	// new things added by gmj93 and h3dema
+	//
     { "get_queue_params", hostapd_cli_cmd_get_queue_params, NULL,
       "= get the tx queue params (all queues)" },
     { "set_queue_params", hostapd_cli_cmd_set_queue_params, NULL,
       "= set the tx queue params (one queue)" },
+    // interesting things to add (become more indenpendent of IW)
+    // set RTS --> using ap_drv_ops.hostapd_set_rts()
+    // set Frag --> using ap_drv_ops.hostapd_set_frag()
+    // set tx power
 	{ NULL, NULL, NULL, NULL }
 };
 
