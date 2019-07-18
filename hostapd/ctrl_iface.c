@@ -1215,21 +1215,25 @@ static int hostapd_ctrl_iface_get_queue_params(struct hostapd_data *hapd,
 }
 
 static int hostapd_ctrl_iface_set_queue_params(struct hostapd_data *hapd,
-                     char *buf, size_t buflen)
+                     char *params, char *buf, size_t buflen)
 {
-    char *pos = buf;
-    // char *end = buf + buflen;
-
     // HERE -- TO DO
-    int queue = 0;
-    int aifs = 0;
-    int cw_min = 0;
-    int cw_max = 0;
-    int burst_time = 0;
 
-    hostapd_set_tx_queue_params(hapd, queue, aifs, cw_min, cw_max, burst_time);
+    // read data
+    int queue, aifs, cw_min, cw_max, burst_time;
+    char * p = params;
+    queue = strtol (p, &p, 10);
+    aifs = strtol (p, &p, 10);
+    cw_min = strtol (p, &p, 10);
+    cw_max = strtol (p, &p, 10);
+    burst_time = strtol (p, &p, 10);
 
-    return pos - buf;
+    wpa_printf(MSG_DEBUG, "Set queue %d: aifs %d cw_min %d cw_max %d burst_time %d", queue, aifs, cw_min, cw_max, burst_time);
+
+    int ret = hostapd_set_tx_queue_params(hapd, queue, aifs, cw_min, cw_max, burst_time);
+
+    int res = os_snprintf(buf, buflen, (ret == 1) ? "ok" : "nok");
+    return res;
 }
 
 
@@ -3433,9 +3437,8 @@ static int hostapd_ctrl_iface_receive_process(struct hostapd_data *hapd,
 	} else if (os_strcmp(buf, "GET_QUEUE_PARAMS") == 0) { // HERE --- Added by gmj93 and h3dema
 		reply_len = hostapd_ctrl_iface_get_queue_params(hapd, reply,
 							  reply_size);
-    } else if (os_strcmp(buf, "SET_QUEUE_PARAMS") == 0) { // HERE --- Added by gmj93 and h3dema
-        reply_len = hostapd_ctrl_iface_set_queue_params(hapd, reply,
-                              reply_size);
+    } else if (os_strncmp(buf, "SET_QUEUE_PARAMS", 16) == 0) { // HERE --- Added by gmj93 and h3dema
+        reply_len = hostapd_ctrl_iface_set_queue_params(hapd, buf + 16, reply, reply_size);
 	} else {
 		os_memcpy(reply, "UNKNOWN COMMAND\n", 16);
 		reply_len = 16;

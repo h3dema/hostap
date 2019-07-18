@@ -844,7 +844,7 @@ static int hostapd_cli_cmd_set_queue_params(struct wpa_ctrl *ctrl,
 	// argv[3] = tx_cwmin
 	// argv[4] = tx_cwmax
 
-	res = os_snprintf(buf, sizeof(buf), "SET_QUEUE_PARAMS %s, %s, %s, %s, %s", argv[0], argv[1], argv[2], argv[3], argv[4]);
+	res = os_snprintf(buf, sizeof(buf), "SET_QUEUE_PARAMS %s %s %s %s %s", argv[0], argv[1], argv[2], argv[3], argv[4]);
 	if (os_snprintf_error(sizeof(buf), res))
 		return -1;
 
