@@ -1230,10 +1230,9 @@ static int hostapd_ctrl_iface_set_queue_params(struct hostapd_data *hapd,
 
     wpa_printf(MSG_DEBUG, "Set queue %d: aifs %d cw_min %d cw_max %d burst_time %d", queue, aifs, cw_min, cw_max, burst_time);
 
+    // call to change
     int ret = hostapd_set_tx_queue_params(hapd, queue, aifs, cw_min, cw_max, burst_time);
-
-    int res = os_snprintf(buf, buflen, (ret == 1) ? "ok" : "nok");
-    return res;
+    return os_snprintf(buf, buflen, (ret == 1) ? "ok" : "nok");
 }
 
 
