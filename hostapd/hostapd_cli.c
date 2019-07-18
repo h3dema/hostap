@@ -840,17 +840,48 @@ static int hostapd_cli_cmd_set_queue_params(struct wpa_ctrl *ctrl,
 
 	// argv[0] = queue num
 	// argv[1] = aifs
-	// argv[2] = burst
-	// argv[3] = tx_cwmin
-	// argv[4] = tx_cwmax
+	// argv[2] = tx_cwmin
+	// argv[3] = tx_cwmax
+	// argv[4] = burst
 
-	res = os_snprintf(buf, sizeof(buf), "SET_QUEUE_PARAMS %s %s %s %s %s", argv[0], argv[1], argv[2], argv[3], argv[4]);
+	res = os_snprintf(buf, sizeof(buf), "SET_QUEUE_PARAMS %s %s %s %s %s",
+						argv[0], argv[1], argv[2], argv[3], argv[4]);
 	if (os_snprintf_error(sizeof(buf), res))
 		return -1;
 
     return wpa_ctrl_command(ctrl, buf);  // processed by hostapd_ctrl_iface_set_queue_params()
 }
 
+static int hostapd_cli_cmd_get_wmm_params(struct wpa_ctrl *ctrl,
+										  int argc, char *argv[]){
+	return wpa_ctrl_command(ctrl, "GET_WMM_PARAMS");
+}
+
+static int hostapd_cli_cmd_set_wmm_params(struct wpa_ctrl *ctrl,
+                       int argc, char *argv[]) {
+	char buf[200];
+	int res;
+
+	if (argc != 5) {
+		printf("Invalid 'set_wmm_params' command - "
+		       "five arguments (comma delimited queue params) "
+		       "is needed\n");
+		return -1;
+	}
+
+	// argv[0] = queue num
+	// argv[1] = aifs
+	// argv[2] = tx_cwmin
+	// argv[3] = tx_cwmax
+	// argv[4] = txop
+
+	res = os_snprintf(buf, sizeof(buf), "SET_WMM_PARAMS %s %s %s %s %s",
+						argv[0], argv[1], argv[2], argv[3], argv[4]);
+	if (os_snprintf_error(sizeof(buf), res))
+		return -1;
+
+    return wpa_ctrl_command(ctrl, buf);  // processed by hostapd_ctrl_iface_set_wmm_params()
+}
 
 static int hostapd_cli_cmd_set_qos_map_set(struct wpa_ctrl *ctrl,
 					   int argc, char *argv[])
@@ -1726,6 +1757,10 @@ static const struct hostapd_cli_cmd hostapd_cli_commands[] = {
       "= get the tx queue params (all queues)" },
     { "set_queue_params", hostapd_cli_cmd_set_queue_params, NULL,
       "= set the tx queue params (one queue)" },
+    { "get_wmm_params", hostapd_cli_cmd_get_wmm_params, NULL,
+	  "= get wmm queue params (all queues)"},
+	{ "set_wmm_params", hostapd_cli_cmd_set_wmm_params, NULL,
+      "= set wmm queue params (one queue)" },
     // interesting things to add (become more indenpendent of IW)
     // set RTS --> using ap_drv_ops.hostapd_set_rts()
     // set Frag --> using ap_drv_ops.hostapd_set_frag()

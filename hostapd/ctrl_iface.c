@@ -1192,8 +1192,60 @@ static int hostapd_ctrl_iface_get_queue_params(struct hostapd_data *hapd,
 
     // see hostapd_config_tx_queue()
 
-    struct hostapd_config *conf = hapd->iconf; //<<- check this
-    for(int num = 0; num < 4; num++) { // Value is fixed in 4
+    struct hostapd_config *conf = hapd->iconf;
+    for(int num = 0; num < NUM_TX_QUEUES; num++) { // NUM_TX_QUEUES defined in src/ap/ap_config.h
+        struct hostapd_tx_queue_params  *queue = &conf->tx_queue[num];
+        int aifs = queue->aifs;
+        int tx_cwmin = queue->cwmin;
+        int tx_cwmax = queue->cwmax;
+        int burst = queue->burst;
+
+        // return result
+        ret = os_snprintf(pos, end - pos,
+                          "Queue=%d : aifs=%d tx_cwmin=%d tx_cwmax=%d burst=%d\n",
+                          num, aifs, tx_cwmin, tx_cwmax, burst
+                          );
+        if (os_snprintf_error(end - pos, ret))
+            return pos - buf;
+        pos += ret;
+    }
+
+	return pos - buf;
+}
+
+static int hostapd_ctrl_iface_set_queue_params(struct hostapd_data *hapd,
+                     char *params, char *buf, size_t buflen)
+{
+    // read data
+    int queue, aifs, cw_min, cw_max, burst_time;
+    char *p = params;
+    queue = strtol (p, &p, 10);
+    aifs = strtol (p, &p, 10);
+    cw_min = strtol (p, &p, 10);
+    cw_max = strtol (p, &p, 10);
+    burst_time = strtol (p, &p, 10);
+
+    wpa_printf(MSG_INFO, "Set queue %d: aifs %d cw_min %d cw_max %d burst_time %d", queue, aifs, cw_min, cw_max, burst_time);
+
+    if (hostapd_set_tx_queue_params(hapd, queue, aifs, cw_min, cw_max, burst_time)){
+    	wpa_printf(MSG_INFO, "Failed to set TX queue parameters for queue %d", queue);
+    	return -1;
+    }
+
+    return 0;
+}
+
+static int hostapd_ctrl_iface_get_wmm_params(struct hostapd_data *hapd,
+					 char *buf, size_t buflen)
+{
+    int ret;
+    char *pos, *end;
+
+    pos = buf;
+    end = buf + buflen;
+
+    struct hostapd_config *conf = hapd->iconf;
+    for(int num = 0; num < 4; num++) { 			// Value is fixed in 4
         struct hostapd_wmm_ac_params *queue = &conf->wmm_ac_params[num];
         int aifs = queue->aifs;
         int tx_cwmin = queue->cwmin;
@@ -1202,40 +1254,35 @@ static int hostapd_ctrl_iface_get_queue_params(struct hostapd_data *hapd,
 
         // return result
         ret = os_snprintf(pos, end - pos,
-                          "Queue=%d : aifs=%d txop=%d tx_cwmin=%d tx_cwmax=%d\n",
-                          num, aifs, txop, tx_cwmin, tx_cwmax
+                          "Queue=%d : aifs=%d tx_cwmin=%d tx_cwmax=%d txop=%d\n",
+                          num, aifs, tx_cwmin, tx_cwmax, txop
                           );
         if (os_snprintf_error(end - pos, ret))
             return pos - buf;
         pos += ret;
     }
-
-
 	return pos - buf;
 }
 
-static int hostapd_ctrl_iface_set_queue_params(struct hostapd_data *hapd,
+static int hostapd_ctrl_iface_set_wmm_params(struct hostapd_data *hapd,
                      char *params, char *buf, size_t buflen)
 {
-    // HERE -- TO DO
-
     // read data
-    int queue, aifs, cw_min, cw_max, burst_time;
+    int queue, aifs, cw_min, cw_max, txop;
     char * p = params;
     queue = strtol (p, &p, 10);
     aifs = strtol (p, &p, 10);
     cw_min = strtol (p, &p, 10);
     cw_max = strtol (p, &p, 10);
-    burst_time = strtol (p, &p, 10);
+    txop = strtol (p, &p, 10);
 
-    wpa_printf(MSG_DEBUG, "Set queue %d: aifs %d cw_min %d cw_max %d burst_time %d", queue, aifs, cw_min, cw_max, burst_time);
+    wpa_printf(MSG_INFO, "Set wmm queue %d: aifs %d cw_min %d cw_max %d txop %d",
+    		queue, aifs, cw_min, cw_max, txop);
 
-    int ret = hostapd_set_tx_queue_params(hapd, queue, aifs, cw_min, cw_max, burst_time);
+    // TODO
 
-    int res = os_snprintf(buf, buflen, (ret == 1) ? "ok" : "nok");
-    return res;
+    return 0;
 }
-
 
 static int hostapd_ctrl_iface_get_config(struct hostapd_data *hapd,
 					 char *buf, size_t buflen)
@@ -3435,10 +3482,13 @@ static int hostapd_ctrl_iface_receive_process(struct hostapd_data *hapd,
 		reply_len = hostapd_ctrl_iface_get_capability(
 			hapd, buf + 15, reply, reply_size);
 	} else if (os_strcmp(buf, "GET_QUEUE_PARAMS") == 0) { // HERE --- Added by gmj93 and h3dema
-		reply_len = hostapd_ctrl_iface_get_queue_params(hapd, reply,
-							  reply_size);
+		reply_len = hostapd_ctrl_iface_get_queue_params(hapd, reply, reply_size);
     } else if (os_strncmp(buf, "SET_QUEUE_PARAMS", 16) == 0) { // HERE --- Added by gmj93 and h3dema
         reply_len = hostapd_ctrl_iface_set_queue_params(hapd, buf + 16, reply, reply_size);
+    } else if (os_strcmp(buf, "GET_WMM_PARAMS") == 0) { // HERE --- Added by gmj93 and h3dema
+    	reply_len = hostapd_ctrl_iface_get_wmm_params(hapd, reply, reply_size);
+    } else if (os_strncmp(buf, "SET_WMM_PARAMS", 14) == 0) { // HERE --- Added by gmj93 and h3dema
+    	reply_len = hostapd_ctrl_iface_set_wmm_params(hapd, buf + 16, reply, reply_size);
 	} else {
 		os_memcpy(reply, "UNKNOWN COMMAND\n", 16);
 		reply_len = 16;
