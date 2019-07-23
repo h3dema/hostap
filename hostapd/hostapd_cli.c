@@ -877,6 +877,7 @@ static int hostapd_cli_cmd_set_wmm_params(struct wpa_ctrl *ctrl,
 
 	res = os_snprintf(buf, sizeof(buf), "SET_WMM_PARAMS %s %s %s %s %s",
 						argv[0], argv[1], argv[2], argv[3], argv[4]);
+
 	if (os_snprintf_error(sizeof(buf), res))
 		return -1;
 

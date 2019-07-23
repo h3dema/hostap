@@ -1225,7 +1225,8 @@ static int hostapd_ctrl_iface_set_queue_params(struct hostapd_data *hapd,
     cw_max = strtol (p, &p, 10);
     burst_time = strtol (p, &p, 10);
 
-    wpa_printf(MSG_INFO, "Set queue %d: aifs %d cw_min %d cw_max %d burst_time %d", num_queue, aifs, cw_min, cw_max, burst_time);
+    wpa_printf(MSG_INFO, "Set queue %d: aifs %d cw_min %d cw_max %d burst_time %d",
+    			num_queue, aifs, cw_min, cw_max, burst_time);
 
     if (hostapd_set_tx_queue_params(hapd, num_queue, aifs, cw_min, cw_max, burst_time)){
     	wpa_printf(MSG_INFO, "Failed to set TX queue parameters for queue %d", num_queue);
@@ -1280,7 +1281,7 @@ static int hostapd_ctrl_iface_set_wmm_params(struct hostapd_data *hapd,
 {
     // read data
     int num_queue, aifs, cw_min, cw_max, txop;
-    char * p = params;
+    char *p = params;
     num_queue = strtol (p, &p, 10);
     aifs = strtol (p, &p, 10);
     cw_min = strtol (p, &p, 10);
@@ -1290,12 +1291,13 @@ static int hostapd_ctrl_iface_set_wmm_params(struct hostapd_data *hapd,
     wpa_printf(MSG_INFO, "Set wmm queue %d: aifs %d cw_min %d cw_max %d txop %d",
     			num_queue, aifs, cw_min, cw_max, txop);
 
-    // TODO
-	// 1. NOT in hostapd_config_wmm_ac() in src/common/ieee802_11_common.c
-    // 2. wmm_set_regulatory_limit() in src/ap/wmm.c  --> set the value in hapd->iconf->wmm_ac_params[num]
-    //    drawback: it sets for all 4 wmm's set of values
-    //    it is called by wmm_calc_regulatory_limit(). Check this function to see how this information is updated
+    struct hostapd_config *conf = hapd->iconf;
+    struct hostapd_wmm_ac_params *queue = &conf->wmm_ac_params[num_queue];
 
+    queue->aifs = aifs;
+    queue->cwmin = cw_min;
+    queue->cwmax = cw_max;
+    queue->txop_limit = txop;
 
     return 0;
 }
@@ -3504,7 +3506,7 @@ static int hostapd_ctrl_iface_receive_process(struct hostapd_data *hapd,
     } else if (os_strcmp(buf, "GET_WMM_PARAMS") == 0) { // HERE --- Added by gmj93 and h3dema
     	reply_len = hostapd_ctrl_iface_get_wmm_params(hapd, reply, reply_size);
     } else if (os_strncmp(buf, "SET_WMM_PARAMS", 14) == 0) { // HERE --- Added by gmj93 and h3dema
-    	reply_len = hostapd_ctrl_iface_set_wmm_params(hapd, buf + 16, reply, reply_size);
+    	reply_len = hostapd_ctrl_iface_set_wmm_params(hapd, buf + 14, reply, reply_size);
 	} else {
 		os_memcpy(reply, "UNKNOWN COMMAND\n", 16);
 		reply_len = 16;
