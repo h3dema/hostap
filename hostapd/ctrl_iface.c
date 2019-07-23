@@ -1279,18 +1279,23 @@ static int hostapd_ctrl_iface_set_wmm_params(struct hostapd_data *hapd,
                      char *params, char *buf, size_t buflen)
 {
     // read data
-    int queue, aifs, cw_min, cw_max, txop;
+    int num_queue, aifs, cw_min, cw_max, txop;
     char * p = params;
-    queue = strtol (p, &p, 10);
+    num_queue = strtol (p, &p, 10);
     aifs = strtol (p, &p, 10);
     cw_min = strtol (p, &p, 10);
     cw_max = strtol (p, &p, 10);
     txop = strtol (p, &p, 10);
 
     wpa_printf(MSG_INFO, "Set wmm queue %d: aifs %d cw_min %d cw_max %d txop %d",
-    		queue, aifs, cw_min, cw_max, txop);
+    			num_queue, aifs, cw_min, cw_max, txop);
 
     // TODO
+	// 1. NOT in hostapd_config_wmm_ac() in src/common/ieee802_11_common.c
+    // 2. wmm_set_regulatory_limit() in src/ap/wmm.c  --> set the value in hapd->iconf->wmm_ac_params[num]
+    //    drawback: it sets for all 4 wmm's set of values
+    //    it is called by wmm_calc_regulatory_limit(). Check this function to see how this information is updated
+
 
     return 0;
 }
