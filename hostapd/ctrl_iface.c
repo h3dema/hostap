@@ -1217,19 +1217,30 @@ static int hostapd_ctrl_iface_set_queue_params(struct hostapd_data *hapd,
                      char *params, char *buf, size_t buflen)
 {
     // read data
-    int queue, aifs, cw_min, cw_max, burst_time;
+    int num_queue, aifs, cw_min, cw_max, burst_time;
     char *p = params;
-    queue = strtol (p, &p, 10);
+    num_queue = strtol (p, &p, 10);
     aifs = strtol (p, &p, 10);
     cw_min = strtol (p, &p, 10);
     cw_max = strtol (p, &p, 10);
     burst_time = strtol (p, &p, 10);
 
-    wpa_printf(MSG_INFO, "Set queue %d: aifs %d cw_min %d cw_max %d burst_time %d", queue, aifs, cw_min, cw_max, burst_time);
+    wpa_printf(MSG_INFO, "Set queue %d: aifs %d cw_min %d cw_max %d burst_time %d", num_queue, aifs, cw_min, cw_max, burst_time);
 
-    if (hostapd_set_tx_queue_params(hapd, queue, aifs, cw_min, cw_max, burst_time)){
-    	wpa_printf(MSG_INFO, "Failed to set TX queue parameters for queue %d", queue);
+    if (hostapd_set_tx_queue_params(hapd, num_queue, aifs, cw_min, cw_max, burst_time)){
+    	wpa_printf(MSG_INFO, "Failed to set TX queue parameters for queue %d", num_queue);
     	return -1;
+    } else {
+    	// check if num_queue is valid??
+    	// if is invalid, never enters here
+
+    	// set this new data into the hapd struct
+    	struct hostapd_config *conf = hapd->iconf;
+    	struct hostapd_tx_queue_params * queue = &conf->tx_queue[num_queue];
+    	queue->aifs  = aifs;
+        queue->cwmin = cw_min;
+        queue->cwmax = cw_max;
+        queue->burst = burst_time;
     }
 
     return 0;
