@@ -1299,6 +1299,8 @@ static int hostapd_ctrl_iface_set_wmm_params(struct hostapd_data *hapd,
     queue->cwmax = cw_max;
     queue->txop_limit = txop;
 
+    ieee802_11_update_beacons(hapd->iface);
+
     return 0;
 }
 
