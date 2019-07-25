@@ -1288,6 +1288,11 @@ static int hostapd_ctrl_iface_set_wmm_params(struct hostapd_data *hapd,
     cw_max = strtol (p, &p, 10);
     txop = strtol (p, &p, 10);
 
+    if (num_queue < 0 || num_queue > 3){
+    	wpa_printf(MSG_ERROR, "Set wmm queue error: queue %d invalid", num_queue);
+    	return -1;
+    }
+
     wpa_printf(MSG_INFO, "Set wmm queue %d: aifs %d cw_min %d cw_max %d txop %d",
     			num_queue, aifs, cw_min, cw_max, txop);
 
